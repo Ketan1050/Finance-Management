@@ -1,6 +1,8 @@
 # FastAPI JWT Authentication
 
 ## 1. Setting up your Virtual Environment
+Fire up your command prompt/terminal and type
+
 ```powershell
     python -m venv fastapienv
     fastapienv\Scripts\activate
