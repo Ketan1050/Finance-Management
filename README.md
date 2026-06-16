@@ -12,7 +12,7 @@ root/
 │   └── database.py           # Database connection
 │   └── .env                     # Environment file, REMEMBER you have to create this!!
 └── .gitignore 
-└── project.toml         # Project configuration file
+└── pyproject.toml         # Project configuration file
 └── README.md 
 └── requirements.txt 
 └── venv/             # Virtual environment
