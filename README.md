@@ -1,6 +1,10 @@
 # FastAPI JWT Authentication
 
 ## 1. Setting up your Virtual Environment
+```powershell
+    python -m venv fastapienv
+    fastapienv\Scripts\activate
+```
 ## 2. Password Hashing
 
 
