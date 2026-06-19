@@ -1,50 +1,115 @@
-from passlib.context import CryptContext
-import os 
 from datetime import datetime, timedelta
-from typing import Union, Any
-from jose import jwt
-from dotenv import load_dotenv
+from typing import Optional
 
-load_dotenv()
+from passlib.context import CryptContext
+from jose import JWTError, jwt
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 30 # 30 minutes
-REFRESH_TOKEN_EXPIRE_MINUTES = 60 *24 * 7 # 7 days 
+# ==========================
+# SECURITY CONFIG
+# ==========================
+
+SECRET_KEY = "your-secret-key"  # Change in production
 ALGORITHM = "HS256"
-SECRET_KEY = os.getenv('JWT_SECRET_KEY')   # should be kept secret
-REFRESH_SECRET_KEY = os.getenv('JWT_REFRESH_SECRET_KEY')   # should be kept secret
 
-password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-def get_hashed_password(password: str)->str:
-    """Takes a plain password and returns the hash for it so that
-    it can be safely stored in the database."""
-    return password_context.hash(password)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-def verify_password(password: str, hashed_pass: str) -> bool:
-    """Takes both the plain and the hashed passwords and 
-    returns a boolean representing whether the two passwords
-    match or not."""
-    return password_context.verify(password, hashed_pass)
 
-def create_access_token(subject: Union[str, Any], expires_delta: int = None)->str:
-    if expires_delta is not None:
-        expires_delta = datetime.utcnow() + expires_delta
+# ==========================
+# PASSWORD FUNCTIONS
+# ==========================
+
+def get_hashed_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(password, hashed_password)
+
+
+# ==========================
+# ACCESS TOKEN
+# ==========================
+
+def create_access_token(
+    subject: str,
+    expires_delta: Optional[timedelta] = None
+):
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
     else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
-    to_encode = {"exp": expires_delta, 
-                 "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode,
-                             SECRET_KEY, 
-                             ALGORITHM)
-    return encoded_jwt
+        expire = datetime.utcnow() + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
 
-def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    if expires_delta is not None:
-        expires_delta = datetime.utcnow() + expires_delta
+    payload = {
+        "sub": str(subject),
+        "exp": expire,
+        "type": "access"
+    }
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+
+# ==========================
+# REFRESH TOKEN
+# ==========================
+
+def create_refresh_token(
+    subject: str,
+    expires_delta: Optional[timedelta] = None
+):
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
     else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(
+            days=REFRESH_TOKEN_EXPIRE_DAYS
+        )
 
-    to_encode = {"exp": expires_delta, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, REFRESH_SECRET_KEY, ALGORITHM)
-    return encoded_jwt
+    payload = {
+        "sub": str(subject),
+        "exp": expire,
+        "type": "refresh"
+    }
+
+    return jwt.encode(
+        payload,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+
+# ==========================
+# DECODE TOKEN
+# ==========================
+
+def decode_token(token: str):
+    try:
+        payload = jwt.decode(
+            token,
+            SECRET_KEY,
+            algorithms=[ALGORITHM]
+        )
+        return payload
+
+    except JWTError:
+        return None
+
+
+# ==========================
+# GET TOKEN SUBJECT
+# ==========================
+
+def get_token_subject(token: str):
+    payload = decode_token(token)
+
+    if payload:
+        return payload.get("sub")
+
+    return None 
