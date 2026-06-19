@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
 import os
 from typing import Optional
+from dotenv import load_dotenv
+from jose import jwt, JWTError
 
-from passlib.context import CryptContext
-from jose import JWTError, jwt
+load_dotenv()
+
+import bcrypt
 
 # ==========================
 # SECURITY CONFIG
@@ -19,19 +22,20 @@ ACCESS_TOKEN_EXPIRE_MINUTES = int(
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
 
 # ==========================
 # PASSWORD FUNCTIONS
 # ==========================
 
 def get_hashed_password(password: str) -> str:
-    return pwd_context.hash(password)
+    # Hash a password with a randomly-generated salt
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return hashed.decode('utf-8')
 
 
 def verify_password(password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(password, hashed_password)
+    # Check that an unhashed password matches one that has previously been hashed
+    return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
 # ==========================

@@ -13,9 +13,9 @@ class UserAuth(BaseModel):
     email: EmailStr
     password: str
 
-
+    
 class UserOut(BaseModel):
-    id: UUID
+    id: int
     username: str
     email: EmailStr
 
@@ -24,7 +24,7 @@ class UserOut(BaseModel):
 
 
 class TokenSchema(BaseModel):
-    access_token: str
+    access_token: str       
     refresh_token: str
     token_type: str = "bearer"
 
@@ -48,7 +48,7 @@ class ExpenseUpdate(BaseModel):
 
 
 class ExpenseResponse(BaseModel):
-    id: UUID
+    id: int
     title: str
     amount: float
     category: str
@@ -70,7 +70,7 @@ class ExpenseSummary(BaseModel):
 
 
 class ExpenseOut(BaseModel):
-    id: UUID
+    id: int
     title: str
     amount: float
     category: str
