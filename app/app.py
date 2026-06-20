@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 
 from app import models
 from app.database import engine, get_db
@@ -73,11 +72,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
 
 @app.post('/signup', summary="Create new user", response_model=UserOut)
 async def create_user(data: UserAuth, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.email == data.email).first()
+    user = db.query(models.User).filter(
+        (models.User.email == data.email) | (models.User.username == data.username)
+    ).first()
     if user is not None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email already exist"
+            detail="User with this email or username already exists"
         )
     
     new_user = models.User(
